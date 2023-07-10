@@ -17,11 +17,11 @@ const authRouter = require("./routes/authRouter");
 app.use(morgan("tiny"));
 app.use(express.json());
 
+app.use("/api/v1/auth", authRouter);
+
 app.use("/", (req, res) => {
   res.send("E-Commerce API");
 });
-
-app.use("/api/v1/auth", authRouter);
 
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
