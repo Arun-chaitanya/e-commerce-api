@@ -1,13 +1,36 @@
 const { StatusCodes } = require("http-status-codes");
 const UserModel = require("../models/UserModel");
-const { BadRequestError } = require("../errors");
-const { createJWT } = require("../utils");
+const { BadRequestError, UnauthenticatedError } = require("../errors");
+const { createJWT, attachCookiesToResponse } = require("../utils");
+
 const login = async (req, res) => {
-  return res.send("login");
+  const { email, password } = req.body;
+  if (!email || !password) {
+    throw new BadRequestError("Please password email and password");
+  }
+
+  const user = await UserModel.findOne({ email });
+
+  if (!user) {
+    throw new UnauthenticatedError("Invalid Credentials");
+  }
+
+  const isPasswordCorrect = await user.comparePassword(password);
+  if (!isPasswordCorrect) {
+    throw new UnauthenticatedError("Invalid Credentials");
+  }
+
+  const tokenUser = { name: user.name, role: user.role, userId: user._id };
+  attachCookiesToResponse({ res, user: tokenUser });
+  return res.status(StatusCodes.OK).json({ user: tokenUser });
 };
 
 const logout = async (req, res) => {
-  return res.send("logout");
+  res.cookie("token", "logout", {
+    httpOnly: true,
+    expires: new Date(Date.now()),
+  });
+  return res.status(StatusCodes.OK).send();
 };
 
 const register = async (req, res) => {
@@ -25,11 +48,9 @@ const register = async (req, res) => {
   const user = await UserModel.create({ email, name, password, role });
 
   const tokenUser = { name: user.name, role: user.role, userId: user._id };
-  const token = createJWT({ payload: tokenUser });
-  return res.status(StatusCodes.CREATED).json({
-    user: tokenUser,
-    token,
-  });
+  attachCookiesToResponse({ res, user: tokenUser });
+
+  return res.status(StatusCodes.CREATED).json({ user: tokenUser });
 };
 
 module.exports = {
