@@ -4,7 +4,7 @@ const { CustomAPIError, NotFoundError } = require("../errors");
 
 const getAllUsers = async (req, res) => {
   const users = await UserModel.find({ role: "user" }).select("-password");
-  res.status(StatusCodes.OK).send({ users });
+  res.status(StatusCodes.OK).json({ users });
 };
 
 const getSingleUser = async (req, res) => {
@@ -13,11 +13,11 @@ const getSingleUser = async (req, res) => {
   if (!user) {
     throw new NotFoundError(`No user with id: ${id}`);
   }
-  res.status(StatusCodes.OK).send({ user });
+  res.status(StatusCodes.OK).json({ user });
 };
 
 const showCurrentUser = async (req, res) => {
-  res.send("show current user");
+  res.status(StatusCodes.OK).json({ user: req.user });
 };
 
 const updateUser = async (req, res) => {
