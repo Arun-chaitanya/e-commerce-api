@@ -36,6 +36,7 @@ const ProductSchema = mongoose.Schema(
     },
     colors: {
       type: [String],
+      default: ["#222"],
       required: [true, "Please provide product colors"],
     },
     featured: {
