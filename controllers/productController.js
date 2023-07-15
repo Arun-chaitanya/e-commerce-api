@@ -1,5 +1,6 @@
 const { StatusCodes } = require("http-status-codes");
 const ProductModel = require("../models/ProductModel");
+const { NotFoundError, BadRequestError } = require("../errors");
 
 const createProduct = async (req, res) => {
   req.body.user = req.user.userId;
@@ -12,15 +13,65 @@ const getAllProducts = async (req, res) => {
 };
 
 const getSingleProduct = async (req, res) => {
-  res.send("get Single Product");
+  const { id } = req.params;
+  const product = await ProductModel.findById(id);
+  if (!product) {
+    throw new NotFoundError("Product not found!");
+  }
+  return res.status(StatusCodes.OK).json({ product });
 };
 
 const updateProduct = async (req, res) => {
-  res.send("update Product");
+  const {
+    name,
+    description,
+    category,
+    company,
+    price,
+    image,
+    colors,
+    featured,
+    freeShipping,
+    inventory,
+  } = req.body;
+
+  const { id } = req.params;
+
+  const updatingFields = {
+    name,
+    description,
+    category,
+    company,
+    price,
+    image,
+    colors,
+    featured,
+    freeShipping,
+    inventory,
+  };
+
+  for (let entry of Object.entries(updatingFields)) {
+    if (typeof entry[1] === "undefined") {
+      throw new BadRequestError("Please provide all the fields");
+    }
+  }
+
+  const product = await ProductModel.findOneAndUpdate(
+    { _id: id },
+    updatingFields,
+    { new: true, runValidators: true }
+  );
+
+  res.status(StatusCodes.OK).json({ product });
 };
 
 const deleteProduct = async (req, res) => {
-  res.send("delete Product");
+  const { id } = req.params;
+  const product = await ProductModel.findByIdAndDelete(id);
+  if (!product) {
+    throw new NotFoundError("Product not found!");
+  }
+  return res.status(StatusCodes.OK).json({});
 };
 
 const uploadImage = async (req, res) => {
