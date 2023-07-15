@@ -1,6 +1,7 @@
 const { StatusCodes } = require("http-status-codes");
 const ProductModel = require("../models/ProductModel");
 const { NotFoundError, BadRequestError } = require("../errors");
+const path = require("path");
 
 const createProduct = async (req, res) => {
   req.body.user = req.user.userId;
@@ -9,7 +10,8 @@ const createProduct = async (req, res) => {
 };
 
 const getAllProducts = async (req, res) => {
-  res.send("get All Products");
+  const products = await ProductModel.find({});
+  return res.status(StatusCodes.OK).json({ products, count: products.length });
 };
 
 const getSingleProduct = async (req, res) => {
@@ -67,15 +69,37 @@ const updateProduct = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
   const { id } = req.params;
-  const product = await ProductModel.findByIdAndDelete(id);
+  const product = await ProductModel.findById(id);
   if (!product) {
     throw new NotFoundError("Product not found!");
   }
-  return res.status(StatusCodes.OK).json({});
+  await product.remove();
+  return res.status(StatusCodes.OK).json({ msg: "Success! Product Removed." });
 };
 
 const uploadImage = async (req, res) => {
-  res.send("upload Image");
+  if (!req.files) {
+    throw new BadRequestError("No file uploaded");
+  }
+
+  const productImage = req.files.image;
+  if (!productImage.mimetype.startsWith("image")) {
+    throw new BadRequestError("Please upload Image");
+  }
+
+  const MAX_SIZE = 1024 * 1024;
+  if (productImage.size > MAX_SIZE) {
+    throw new BadRequestError("Please upload Image less than 1MB");
+  }
+
+  const imagePath = path.join(
+    __dirname,
+    "../public/uploads/" + productImage.name
+  );
+  await productImage.mv(imagePath);
+  return res
+    .status(StatusCodes.CREATED)
+    .json({ image: `/uploads/${productImage.name}` });
 };
 
 module.exports = {
