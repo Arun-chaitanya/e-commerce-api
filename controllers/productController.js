@@ -73,7 +73,7 @@ const deleteProduct = async (req, res) => {
   if (!product) {
     throw new NotFoundError("Product not found!");
   }
-  await product.remove();
+  await product.deleteOne();
   return res.status(StatusCodes.OK).json({ msg: "Success! Product Removed." });
 };
 

@@ -17,6 +17,7 @@ const connectDB = require("./db/connect");
 const authRouter = require("./routes/authRouter");
 const userRouter = require("./routes/userRouter");
 const productRouter = require("./routes/productRouter");
+const reviewRouter = require("./routes/reviewRouter");
 
 app.use(morgan("tiny"));
 app.use(express.json());
@@ -28,6 +29,7 @@ app.use(fileUpload());
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/products", productRouter);
+app.use("/api/v1/reviews", reviewRouter);
 
 app.get("/", (req, res) => {
   res.send("E-Commerce API");
